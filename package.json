@@ -1,6 +1,6 @@
 {
-  "name": "swell-node",
-  "version": "5.4.1",
+  "name": "swell-node-http",
+  "version": "1.0.0",
   "description": "Swell API library for NodeJS",
   "engines": {
     "node": ">=14.19.1",
@@ -12,13 +12,13 @@
     "payments",
     "api"
   ],
-  "homepage": "https://github.com/swellstores/swell-node",
+  "homepage": "https://github.com/swellstores/swell-node-http",
   "author": "Swell",
   "repository": {
     "type": "git",
-    "url": "git://github.com/swellstores/swell-node.git"
+    "url": "git://github.com/swellstores/swell-node-http.git"
   },
-  "bugs:": "https://github.com/swellstores/swell-node/issues",
+  "bugs:": "https://github.com/swellstores/swell-node-http/issues",
   "dependencies": {
     "axios": "^1.6.1"
   },
