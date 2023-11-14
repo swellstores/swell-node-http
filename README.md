@@ -11,7 +11,16 @@
 ```javascript
 const swell = require('swell-node-http');
 
-TODO
+swell.init('my-store', 'secret-key');
+```
+
+To connect to multiple stores in the same process, use `swell.createClient()`:
+
+```javascript
+const swell = require('swell-node-http');
+
+const store1 = swell.createClient('my-store-1', 'secret-key-1');
+const store2 = swell.createClient('my-store-2', 'secret-key-2');
 ```
 
 ## Usage
