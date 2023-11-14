@@ -4,23 +4,14 @@
 
 ## Install
 
-    npm install swell-node --save
+    npm install swell-node-http --save
 
 ## Connect
 
 ```javascript
-const swell = require('swell-node');
+const swell = require('swell-node-http');
 
-swell.init('my-store', 'secret-key');
-```
-
-To connect to multiple stores in the same process, use `swell.createClient()`:
-
-```javascript
-const swell = require('swell-node');
-
-const store1 = swell.createClient('my-store-1', 'secret-key-1');
-const store2 = swell.createClient('my-store-2', 'secret-key-2');
+TODO
 ```
 
 ## Usage
@@ -34,18 +25,6 @@ try {
 } catch (err) {
   console.error(err);
 }
-```
-
-## Caching
-
-This library provides in-memory caching enabled by default, using a version protocol that means you don't have to worry about stale cache. Records that don't change too frequently, such as products, will always return from cache when possible.
-
-To disable caching behavior, use the option `cache: false`.
-
-```javascript
-swell.init('my-store', 'secret-key', {
-  cache: false,
-});
 ```
 
 ## Documentation
