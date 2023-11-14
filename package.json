@@ -1,0 +1,37 @@
+{
+  "name": "swell-node",
+  "version": "5.4.1",
+  "description": "Swell API library for NodeJS",
+  "engines": {
+    "node": ">=14.19.1",
+    "npm": ">=8.17.0"
+  },
+  "keywords": [
+    "swell",
+    "ecommerce",
+    "payments",
+    "api"
+  ],
+  "homepage": "https://github.com/swellstores/swell-node",
+  "author": "Swell",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/swellstores/swell-node.git"
+  },
+  "bugs:": "https://github.com/swellstores/swell-node/issues",
+  "dependencies": {
+    "axios": "^1.6.1"
+  },
+  "devDependencies": {
+    "axios-mock-adapter": "^1.22.0",
+    "eslint": "^8.49.0",
+    "jest": "^29.7.0",
+    "prettier": "^3.0.3"
+  },
+  "license": "MIT",
+  "scripts": {
+    "prettier": "prettier --write \"**/*.js\"",
+    "test": "jest --config=jest.config.json",
+    "test:watch": "jest --config=jest.config.json --watch"
+  }
+}
