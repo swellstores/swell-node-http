@@ -27,12 +27,12 @@ const store2 = swell.createClient('my-store-2', 'secret-key-2');
 
 ```javascript
 try {
-  const products = await swell.get('/products', {
+  const { data } = await swell.get('/products', {
     active: true
   });
-  console.log(products);
+  console.log(data);
 } catch (err) {
-  console.error(err);
+  console.error(err.message);
 }
 ```
 
