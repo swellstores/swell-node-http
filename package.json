@@ -34,7 +34,6 @@
     "axios-mock-adapter": "^1.22.0",
     "eslint": "^8.55.0",
     "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-prettier": "^5.0.1",
     "jest": "^29.7.0",
     "prettier": "^3.1.0",
     "rimraf": "^5.0.5",
