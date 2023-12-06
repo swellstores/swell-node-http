@@ -49,7 +49,7 @@ class ApiError extends Error {
 /**
  * Swell API Client.
  */
-export default class Client {
+export class Client {
   clientId?: string;
   clientKey?: string;
   options: ClientOptions;
