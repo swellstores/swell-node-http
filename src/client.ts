@@ -1,5 +1,5 @@
-import axios, { AxiosInstance } from 'axios';
-import https from 'https';
+import * as axios from 'axios';
+import * as https from 'https';
 
 export enum HttpMethod {
   get = 'get',
@@ -53,7 +53,7 @@ export class Client {
   clientId?: string;
   clientKey?: string;
   options: ClientOptions;
-  httpClient?: AxiosInstance;
+  httpClient?: axios.AxiosInstance;
 
   static create(
     clientId: string,

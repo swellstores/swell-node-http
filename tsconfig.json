@@ -9,7 +9,7 @@
     "target": "es2020",
     "strict": true,
     "alwaysStrict": true,
-    "esModuleInterop": true,
+    "esModuleInterop": false,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "node16",
