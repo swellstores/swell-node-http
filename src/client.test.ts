@@ -15,7 +15,7 @@ describe('Client', () => {
     });
 
     test('creates an instance with initialization', () => {
-      const client = new Client('id', 'key', {timeout: 1000});
+      const client = new Client('id', 'key', { timeout: 1000 });
 
       expect(client.options.timeout).toEqual(1000);
       expect(client.httpClient).toBeDefined();
@@ -23,7 +23,7 @@ describe('Client', () => {
   });
 
   describe('#init', () => {
-    let client : Client;
+    let client: Client;
 
     beforeEach(() => {
       client = new Client();
@@ -69,23 +69,30 @@ describe('Client', () => {
     describe('concerning headers', () => {
       test('sets default content-type header', () => {
         client.init('id', 'key');
-        expect(client.httpClient?.defaults.headers.common['Content-Type'])
-          .toEqual('application/json');
+        expect(
+          client.httpClient?.defaults.headers.common['Content-Type'],
+        ).toEqual('application/json');
       });
 
       test('sets default user-agent header', () => {
         client.init('id', 'key');
-        expect(client.httpClient?.defaults.headers.common['User-Agent'])
-          .toEqual(`${process.env.npm_package_name} (${process.env.npm_package_version})`);
+        expect(
+          client.httpClient?.defaults.headers.common['User-Agent'],
+        ).toEqual(
+          `${process.env.npm_package_name} (${process.env.npm_package_version})`,
+        );
       });
 
       test('sets authorization header', () => {
         client.init('id', 'key');
 
-        const authToken : string = Buffer.from('id:key', 'utf8').toString('base64');
+        const authToken: string = Buffer.from('id:key', 'utf8').toString(
+          'base64',
+        );
 
-        expect(client.httpClient?.defaults.headers.common['Authorization'])
-          .toEqual(`Basic ${authToken}`);
+        expect(
+          client.httpClient?.defaults.headers.common['Authorization'],
+        ).toEqual(`Basic ${authToken}`);
       });
 
       test('passes in extra headers', () => {
@@ -96,8 +103,12 @@ describe('Client', () => {
 
         client.init('id', 'key', { headers });
 
-        expect(client.httpClient?.defaults.headers.common['X-Header-1']).toEqual('foo');
-        expect(client.httpClient?.defaults.headers.common['X-Header-2']).toEqual('bar');
+        expect(
+          client.httpClient?.defaults.headers.common['X-Header-1'],
+        ).toEqual('foo');
+        expect(
+          client.httpClient?.defaults.headers.common['X-Header-2'],
+        ).toEqual('bar');
       });
     }); // describe: concerning headers
   }); // describe: #init
@@ -108,7 +119,11 @@ describe('Client', () => {
 
       mock.onGet('/products/:count').reply(200, 42);
 
-      const response : any = await client.request(HttpMethod.get, '/products/:count', {});
+      const response: any = await client.request(
+        HttpMethod.get,
+        '/products/:count',
+        {},
+      );
 
       expect(response).toEqual(42);
     });
@@ -118,7 +133,11 @@ describe('Client', () => {
 
       mock.onPost('/products').reply(200, 'result');
 
-      const response : any = await client.request(HttpMethod.post, '/products', {});
+      const response: any = await client.request(
+        HttpMethod.post,
+        '/products',
+        {},
+      );
 
       expect(response).toEqual('result');
     });
@@ -128,7 +147,11 @@ describe('Client', () => {
 
       mock.onPut('/products/{id}').reply(200, 'result');
 
-      const response : any = await client.request(HttpMethod.put, '/products/{id}', { id: 'foo' });
+      const response: any = await client.request(
+        HttpMethod.put,
+        '/products/{id}',
+        { id: 'foo' },
+      );
 
       expect(response).toEqual('result');
     });
@@ -138,7 +161,11 @@ describe('Client', () => {
 
       mock.onDelete('/products/{id}').reply(200, 'result');
 
-      const response : any = await client.request(HttpMethod.delete, '/products/{id}', { id: 'foo' });
+      const response: any = await client.request(
+        HttpMethod.delete,
+        '/products/{id}',
+        { id: 'foo' },
+      );
 
       expect(response).toEqual('result');
     });
@@ -148,9 +175,9 @@ describe('Client', () => {
 
       mock.onGet('/products/:count').reply(500, 'Internal Server Error');
 
-      await expect(client.request(HttpMethod.get, '/products/:count', {}))
-        .rejects
-        .toThrow(new Error('Internal Server Error'));
+      await expect(
+        client.request(HttpMethod.get, '/products/:count', {}),
+      ).rejects.toThrow(new Error('Internal Server Error'));
     });
 
     test('handles a timeout', async () => {
@@ -158,9 +185,9 @@ describe('Client', () => {
 
       mock.onGet('/products/:count').timeout();
 
-      await expect(client.request(HttpMethod.get, '/products/:count', {}))
-        .rejects
-        .toThrow(new Error('timeout of 0ms exceeded'));
+      await expect(
+        client.request(HttpMethod.get, '/products/:count', {}),
+      ).rejects.toThrow(new Error('timeout of 0ms exceeded'));
     });
   }); // describe: #request
 });
