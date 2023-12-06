@@ -1,29 +1,60 @@
-'use strict';
+import axios, { AxiosInstance } from 'axios';
+import https from 'https';
 
-const https = require('https');
-const axios = require('axios');
+enum HttpMethod {
+  Get = 'get',
+  Post = 'post',
+  Put = 'put',
+  Delete = 'delete'
+};
 
-const {
-  name: packageName,
-  version: packageVersion
-} = require('../package.json');
+interface HttpHeaders {
+  [header: string]: string | string[] | undefined;
+};
 
-const DEFAULT_OPTIONS = Object.freeze({
+interface ClientOptions {
+  url?: string,
+  verifyCert?: boolean,
+  version?: number,
+  timeout?: number,
+  headers?: HttpHeaders,
+};
+
+const DEFAULT_OPTIONS : Readonly<ClientOptions> = Object.freeze({
   url: 'https://api.swell.store',
   verifyCert: true,
   version: 1,
   headers: {},
 });
 
+class ApiError extends Error {
+  code?: string;
+  status?: number;
+  headers: HttpHeaders;
+
+  constructor(message: string, code?: string, status?: number, headers: HttpHeaders = {}) {
+    super(message);
+
+    this.code = code;
+    this.status = status;
+    this.headers = headers;
+  }
+}
+
 /**
  * Swell API Client.
  */
-class Client {
-  static create(clientId, clientKey, options) {
+export default class Client {
+  clientId?: string;
+  clientKey?: string;
+  options: ClientOptions;
+  httpClient?: AxiosInstance;
+
+  static create(clientId: string, clientKey: string, options: ClientOptions = {}) : Client {
     return new Client(clientId, clientKey, options);
   }
 
-  constructor(clientId, clientKey, options) {
+  constructor(clientId?: string, clientKey?: string, options: ClientOptions = {}) {
     this.options = {};
 
     if (clientId) {
@@ -31,7 +62,7 @@ class Client {
     }
   }
 
-  init(clientId, clientKey, options) {
+  init(clientId?: string, clientKey?: string, options?: ClientOptions) : void {
     if (!clientId) {
       throw new Error("Swell store 'id' is required to connect");
     }
@@ -48,7 +79,7 @@ class Client {
     this._initHttpClient();
   }
 
-  _initHttpClient() {
+  _initHttpClient() : void {
     const { url, timeout, verifyCert, headers } = this.options;
 
     const authToken = Buffer.from(
@@ -62,7 +93,7 @@ class Client {
         common: {
           ...headers,
           'Content-Type': 'application/json',
-          'User-Agent': `${packageName} (${packageVersion})`,
+          'User-Agent': `${process.env.npm_package_name} (${process.env.npm_package_version})`,
           Authorization: `Basic ${authToken}`,
         },
       },
@@ -71,36 +102,36 @@ class Client {
     });
   }
 
-  async get(url, data) {
-    return this.request('get', url, data);
+  async get(url: string, data: any) : Promise<any> {
+    return this.request(HttpMethod.Get, url, data);
   }
 
-  async post(url, data) {
-    return this.request('post', url, data);
+  async post(url: string, data: any) : Promise<any> {
+    return this.request(HttpMethod.Post, url, data);
   }
 
-  async put(url, data) {
-    return this.request('put', url, data);
+  async put(url: string, data: any ) : Promise<any> {
+    return this.request(HttpMethod.Put, url, data);
   }
 
-  async delete(url, data) {
-    return this.request('delete', url, data);
+  async delete(url: string, data: any) : Promise<any> {
+    return this.request(HttpMethod.Delete, url, data);
   }
 
-  async request(method, url, data) {
+  async request(method: HttpMethod, url: string, data: any) : Promise<any> {
     // Prepare url and data for request
     const requestObj = transformRequest(method, url, data);
 
     let response;
     try {
-      response = await this.httpClient.request(requestObj);
+      response = await this.httpClient?.request(requestObj);
     } catch (error) {
       throw transformError(error);
     }
 
     return transformResponse(response).data;
   }
-}
+};
 
 /**
  * Transforms the request.
@@ -110,7 +141,7 @@ class Client {
  * @param data   The request data
  * @return a normalized request object
  */
-function transformRequest(method, url, data) {
+function transformRequest(method: HttpMethod, url: string, data: any) : any {
   return {
     method,
     url: typeof url?.toString === 'function' ? url.toString() : '',
@@ -124,7 +155,7 @@ function transformRequest(method, url, data) {
  * @param response The response object
  * @return a normalized response object
  */
-function transformResponse(response) {
+function transformResponse(response: any) : any {
   const { data, headers, status } = response;
   return {
     data,
@@ -139,7 +170,7 @@ function transformResponse(response) {
  * @param error The Error object
  * @return {Error}
  */
-function transformError(error) {
+function transformError(error : any) : ApiError {
   let code, message, status, headers;
 
   if (error.response) {
@@ -161,32 +192,26 @@ function transformError(error) {
     message = error.message;
   }
 
-  const err = new Error(message);
-  err.code = typeof code === 'string'
-    ? code.toUpperCase().replace(/ /g, '_')
-    : 'ERROR';
-  if (status) {
-    err.status = status;
-  }
-  if (headers) {
-    err.headers = normalizeHeaders(headers);
-  }
-
-  return err;
+  return new ApiError(
+    message,
+    typeof code === 'string'
+        ? code.toUpperCase().replace(/ /g, '_')
+        : 'ERROR',
+    status,
+    normalizeHeaders(headers),
+  );
 }
 
-function normalizeHeaders(headers) {
+function normalizeHeaders(headers : HttpHeaders) : any {
   // so that headers are not returned as AxiosHeaders
-  const normalized = {};
+  const normalized : HttpHeaders = {};
   for (const [key, value] of Object.entries(headers || {})) {
     normalized[key] = value;
   }
   return normalized;
 }
 
-function formatMessage(message) {
+function formatMessage(message : any) : any {
   // get rid of trailing newlines
   return typeof message === 'string' ? message.trim() : message;
 }
-
-module.exports = Client;
