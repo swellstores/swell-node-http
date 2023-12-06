@@ -1,18 +1,18 @@
 import axios, { AxiosInstance } from 'axios';
 import https from 'https';
 
-enum HttpMethod {
-  Get = 'get',
-  Post = 'post',
-  Put = 'put',
-  Delete = 'delete'
+export enum HttpMethod {
+  get = 'get',
+  post = 'post',
+  put = 'put',
+  delete = 'delete'
 };
 
-interface HttpHeaders {
+export interface HttpHeaders {
   [header: string]: string | string[] | undefined;
 };
 
-interface ClientOptions {
+export interface ClientOptions {
   url?: string,
   verifyCert?: boolean,
   version?: number,
@@ -39,7 +39,7 @@ class ApiError extends Error {
     this.status = status;
     this.headers = headers;
   }
-}
+};
 
 /**
  * Swell API Client.
@@ -103,19 +103,19 @@ export default class Client {
   }
 
   async get(url: string, data: any) : Promise<any> {
-    return this.request(HttpMethod.Get, url, data);
+    return this.request(HttpMethod.get, url, data);
   }
 
   async post(url: string, data: any) : Promise<any> {
-    return this.request(HttpMethod.Post, url, data);
+    return this.request(HttpMethod.post, url, data);
   }
 
   async put(url: string, data: any ) : Promise<any> {
-    return this.request(HttpMethod.Put, url, data);
+    return this.request(HttpMethod.put, url, data);
   }
 
   async delete(url: string, data: any) : Promise<any> {
-    return this.request(HttpMethod.Delete, url, data);
+    return this.request(HttpMethod.delete, url, data);
   }
 
   async request(method: HttpMethod, url: string, data: any) : Promise<any> {
@@ -200,7 +200,7 @@ function transformError(error : any) : ApiError {
     status,
     normalizeHeaders(headers),
   );
-}
+};
 
 function normalizeHeaders(headers : HttpHeaders) : any {
   // so that headers are not returned as AxiosHeaders
