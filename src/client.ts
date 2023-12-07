@@ -28,6 +28,7 @@ const DEFAULT_OPTIONS: Readonly<ClientOptions> = Object.freeze({
 });
 
 class ApiError extends Error {
+  message: string;
   code?: string;
   status?: number;
   headers: HttpHeaders;
@@ -38,8 +39,9 @@ class ApiError extends Error {
     status?: number,
     headers: HttpHeaders = {},
   ) {
-    super(message);
+    super();
 
+    this.message = message;
     this.code = code;
     this.status = status;
     this.headers = headers;
