@@ -177,7 +177,7 @@ describe('Client', () => {
 
       await expect(
         client.request(HttpMethod.get, '/products/:count', {}),
-      ).rejects.toEqual('Internal Server Error');
+      ).rejects.toThrow(new Error('Internal Server Error'));
     });
 
     test('handles a timeout', async () => {
@@ -187,7 +187,7 @@ describe('Client', () => {
 
       await expect(
         client.request(HttpMethod.get, '/products/:count', {}),
-      ).rejects.toEqual('timeout of 0ms exceeded');
+      ).rejects.toThrow(new Error('timeout of 0ms exceeded'));
     });
   }); // describe: #request
 });

@@ -139,8 +139,7 @@ export class Client {
     try {
       response = await this.httpClient?.request(requestObj);
     } catch (error) {
-      const { message } = transformError(error);
-      throw message;
+      throw transformError(error);
     }
 
     return transformResponse(response).data;
