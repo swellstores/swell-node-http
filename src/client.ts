@@ -1,5 +1,6 @@
 import * as axios from 'axios';
-import * as https from 'https';
+import { CookieJar } from 'tough-cookie';
+import { HttpCookieAgent, HttpsCookieAgent } from 'http-cookie-agent/http'; 
 
 export enum HttpMethod {
   get = 'get',
@@ -100,6 +101,8 @@ export class Client {
       'utf8',
     ).toString('base64');
 
+    const jar = new CookieJar();
+
     this.httpClient = axios.create({
       baseURL: url,
       headers: {
@@ -110,7 +113,13 @@ export class Client {
           Authorization: `Basic ${authToken}`,
         },
       },
-      httpsAgent: new https.Agent({ rejectUnauthorized: Boolean(verifyCert) }),
+      httpAgent: new HttpCookieAgent({
+        cookies: { jar },
+      }),
+      httpsAgent: new HttpsCookieAgent({
+        cookies: { jar },
+        rejectUnauthorized: Boolean(verifyCert),
+      }),
       ...(timeout ? { timeout } : undefined),
     });
   }
