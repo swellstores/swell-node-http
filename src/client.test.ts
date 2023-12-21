@@ -78,8 +78,16 @@ describe('Client', () => {
         client.init('id', 'key');
         expect(
           client.httpClient?.defaults.headers.common['User-Agent'],
+        ).toMatch(/^swell-node-http@.+$/);
+      });
+
+      test('sets default x-user-application header', () => {
+        client.init('id', 'key');
+
+        expect(
+          client.httpClient?.defaults.headers.common['X-User-Application'],
         ).toEqual(
-          `${process.env.npm_package_name} (${process.env.npm_package_version})`,
+          `${process.env.npm_package_name}@${process.env.npm_package_version}`,
         );
       });
 
