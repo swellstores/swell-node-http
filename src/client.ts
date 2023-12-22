@@ -1,6 +1,6 @@
 import * as axios from 'axios';
 import { CookieJar } from 'tough-cookie';
-import { HttpCookieAgent, HttpsCookieAgent } from 'http-cookie-agent/http'; 
+import { HttpCookieAgent, HttpsCookieAgent } from 'http-cookie-agent/http';
 
 export enum HttpMethod {
   get = 'get',
@@ -20,6 +20,15 @@ export interface ClientOptions {
   timeout?: number;
   headers?: HttpHeaders;
 }
+
+const MODULE_VERSION: string = (({ name, version }) => {
+  return `${name}@${version}`;
+})(require('../package.json')); // eslint-disable-line @typescript-eslint/no-var-requires
+
+const USER_APP_VERSION: string | undefined =
+  process.env.npm_package_name && process.env.npm_package_version
+    ? `${process.env.npm_package_name}@${process.env.npm_package_version}`
+    : undefined;
 
 const DEFAULT_OPTIONS: Readonly<ClientOptions> = Object.freeze({
   url: 'https://api.swell.store',
@@ -111,7 +120,8 @@ export class Client {
         common: {
           ...headers,
           'Content-Type': 'application/json',
-          'User-Agent': `${process.env.npm_package_name} (${process.env.npm_package_version})`,
+          'User-Agent': MODULE_VERSION,
+          'X-User-Application': USER_APP_VERSION,
           Authorization: `Basic ${authToken}`,
         },
       },
