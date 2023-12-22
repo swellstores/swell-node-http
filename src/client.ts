@@ -67,14 +67,6 @@ export class Client {
   options: ClientOptions;
   httpClient?: axios.AxiosInstance;
 
-  static create(
-    clientId: string,
-    clientKey: string,
-    options: ClientOptions = {},
-  ): Client {
-    return new Client(clientId, clientKey, options);
-  }
-
   constructor(
     clientId?: string,
     clientKey?: string,
@@ -85,6 +77,17 @@ export class Client {
     if (clientId) {
       this.init(clientId, clientKey, options);
     }
+  }
+
+  /**
+   * Convenience method to create a new client instance from a singleton instance.
+   */
+  create(
+    clientId: string,
+    clientKey: string,
+    options: ClientOptions = {},
+  ): Client {
+    return new Client(clientId, clientKey, options);
   }
 
   init(clientId?: string, clientKey?: string, options?: ClientOptions): void {
