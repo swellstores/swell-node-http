@@ -1,6 +1,6 @@
 import { Client } from './client';
 
-export default new Client();
-export const createClient = Client.create;
+// Singleton
+export const swell = new Client();
 
 export * from './client';
