@@ -2,7 +2,7 @@ import * as axios from 'axios';
 import { CookieJar } from 'tough-cookie';
 import { HttpCookieAgent, HttpsCookieAgent } from 'http-cookie-agent/http';
 
-export enum HttpMethod {
+export const enum HttpMethod {
   get = 'get',
   post = 'post',
   put = 'put',
@@ -10,7 +10,7 @@ export enum HttpMethod {
 }
 
 export interface HttpHeaders {
-  [header: string]: string | string[] | undefined;
+  [header: string]: axios.AxiosHeaderValue;
 }
 
 export interface ClientOptions {
@@ -62,17 +62,20 @@ class ApiError extends Error {
  * Swell API Client.
  */
 export class Client {
-  clientId?: string;
-  clientKey?: string;
+  clientId: string;
+  clientKey: string;
   options: ClientOptions;
-  httpClient?: axios.AxiosInstance;
+  httpClient: axios.AxiosInstance | null;
 
   constructor(
     clientId?: string,
     clientKey?: string,
     options: ClientOptions = {},
   ) {
+    this.clientId = typeof clientId === 'string' ? clientId : '';
+    this.clientKey = typeof clientKey === 'string' ? clientKey : '';
     this.options = {};
+    this.httpClient = null;
 
     if (clientId) {
       this.init(clientId, clientKey, options);
@@ -139,29 +142,37 @@ export class Client {
     });
   }
 
-  async get(url: string, data: any): Promise<any> {
+  get<T>(url: string, data?: unknown): Promise<T> {
     return this.request(HttpMethod.get, url, data);
   }
 
-  async post(url: string, data: any): Promise<any> {
+  post<T>(url: string, data: unknown): Promise<T> {
     return this.request(HttpMethod.post, url, data);
   }
 
-  async put(url: string, data: any): Promise<any> {
+  put<T>(url: string, data: unknown): Promise<T> {
     return this.request(HttpMethod.put, url, data);
   }
 
-  async delete(url: string, data: any): Promise<any> {
+  delete<T>(url: string, data?: unknown): Promise<T> {
     return this.request(HttpMethod.delete, url, data);
   }
 
-  async request(method: HttpMethod, url: string, data: any): Promise<any> {
+  async request<T>(
+    method: HttpMethod,
+    url: string,
+    data?: unknown,
+  ): Promise<T> {
+    if (this.httpClient === null) {
+      throw new Error('Swell API client not initialized');
+    }
+
     // Prepare url and data for request
-    const requestObj = transformRequest(method, url, data);
+    const requestParams = transformRequest(method, url, data);
 
     let response;
     try {
-      response = await this.httpClient?.request(requestObj);
+      response = await this.httpClient.request<T>(requestParams);
     } catch (error) {
       throw transformError(error);
     }
@@ -178,12 +189,22 @@ export class Client {
  * @param data   The request data
  * @return a normalized request object
  */
-function transformRequest(method: HttpMethod, url: string, data: any): any {
+function transformRequest(
+  method: HttpMethod,
+  url: string,
+  data: unknown,
+): axios.AxiosRequestConfig {
   return {
     method,
     url: typeof url?.toString === 'function' ? url.toString() : '',
     data: data !== undefined ? data : null,
   };
+}
+
+interface TransformedResponse<T> {
+  data: T;
+  headers: HttpHeaders;
+  status: number;
 }
 
 /**
@@ -192,7 +213,9 @@ function transformRequest(method: HttpMethod, url: string, data: any): any {
  * @param response The response object
  * @return a normalized response object
  */
-function transformResponse(response: any): any {
+function transformResponse<T>(
+  response: axios.AxiosResponse<T>,
+): TransformedResponse<T> {
   const { data, headers, status } = response;
   return {
     data,
@@ -201,30 +224,42 @@ function transformResponse(response: any): any {
   };
 }
 
+function isError(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error;
+}
+
 /**
  * Transforms the error response.
  *
  * @param error The Error object
- * @return {Error}
+ * @return {ApiError}
  */
-function transformError(error: any): ApiError {
-  let code, message, status, headers;
+function transformError(error: unknown): ApiError {
+  let code,
+    message = '',
+    status,
+    headers;
 
-  if (error.response) {
-    // The request was made and the server responded with a status code
-    // that falls out of the range of 2xx
-    const { data, statusText } = error.response;
-    code = statusText;
-    message = formatMessage(data);
-    status = error.response.status;
-    headers = normalizeHeaders(error.response.headers);
-  } else if (error.request) {
-    // The request was made but no response was received
-    code = 'NO_RESPONSE';
-    message = 'No response from server';
-  } else {
-    // Something happened in setting up the request that triggered an Error
-    // The request was made but no response was received
+  if (axios.isAxiosError(error)) {
+    if (error.response) {
+      // The request was made and the server responded with a status code
+      // that falls out of the range of 2xx
+      const { data, statusText } = error.response;
+      code = statusText;
+      message = formatMessage(data);
+      status = error.response.status;
+      headers = normalizeHeaders(error.response.headers);
+    } else if (error.request) {
+      // The request was made but no response was received
+      code = 'NO_RESPONSE';
+      message = 'No response from server';
+    } else {
+      // Something happened in setting up the request that triggered an Error
+      // The request was made but no response was received
+      code = error.code;
+      message = error.message;
+    }
+  } else if (isError(error)) {
     code = error.code;
     message = error.message;
   }
@@ -233,20 +268,18 @@ function transformError(error: any): ApiError {
     message,
     typeof code === 'string' ? code.toUpperCase().replace(/ /g, '_') : 'ERROR',
     status,
-    normalizeHeaders(headers),
+    headers,
   );
 }
 
-function normalizeHeaders(headers: HttpHeaders): any {
+function normalizeHeaders(
+  headers: axios.AxiosResponse['headers'],
+): HttpHeaders {
   // so that headers are not returned as AxiosHeaders
-  const normalized: HttpHeaders = {};
-  for (const [key, value] of Object.entries(headers || {})) {
-    normalized[key] = value;
-  }
-  return normalized;
+  return Object.fromEntries(Object.entries(headers || {}));
 }
 
-function formatMessage(message: any): any {
+function formatMessage(message: unknown): string {
   // get rid of trailing newlines
-  return typeof message === 'string' ? message.trim() : message;
+  return typeof message === 'string' ? message.trim() : String(message);
 }

@@ -11,7 +11,7 @@ describe('Client', () => {
       const client = new Client();
 
       expect(client.options).toEqual({});
-      expect(client.httpClient).toBeUndefined();
+      expect(client.httpClient).toStrictEqual(null);
     });
 
     test('creates an instance with initialization', () => {
@@ -127,7 +127,7 @@ describe('Client', () => {
 
       mock.onGet('/products/:count').reply(200, 42);
 
-      const response: any = await client.request(
+      const response = await client.request(
         HttpMethod.get,
         '/products/:count',
         {},
@@ -141,7 +141,7 @@ describe('Client', () => {
 
       mock.onPost('/products').reply(200, 'result');
 
-      const response: any = await client.request(
+      const response = await client.request(
         HttpMethod.post,
         '/products',
         {},
@@ -155,7 +155,7 @@ describe('Client', () => {
 
       mock.onPut('/products/{id}').reply(200, 'result');
 
-      const response: any = await client.request(
+      const response = await client.request(
         HttpMethod.put,
         '/products/{id}',
         { id: 'foo' },
@@ -169,7 +169,7 @@ describe('Client', () => {
 
       mock.onDelete('/products/{id}').reply(200, 'result');
 
-      const response: any = await client.request(
+      const response = await client.request(
         HttpMethod.delete,
         '/products/{id}',
         { id: 'foo' },
