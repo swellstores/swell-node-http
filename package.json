@@ -8,8 +8,7 @@
     "dist"
   ],
   "engines": {
-    "node": ">=14.19.1",
-    "npm": ">=8.17.0"
+    "node": ">=16"
   },
   "repository": {
     "type": "git",
