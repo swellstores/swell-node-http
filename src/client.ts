@@ -37,7 +37,7 @@ const DEFAULT_OPTIONS: Readonly<ClientOptions> = Object.freeze({
   verifyCert: true,
   version: 1,
   headers: {},
-  retries: 0,
+  retries: 0, // 0 => no retries
 });
 
 class ApiError extends Error {

@@ -199,6 +199,7 @@ describe('Client', () => {
     test('handle zero retries by default', async () => {
       const client = new Client('id', 'key');
 
+      // Simulate server failure on first 2 attempts and success on the third
       let retryCounter = 0;
       mock.onGet('/products/:count').reply(() => {
         retryCounter++;
@@ -216,6 +217,7 @@ describe('Client', () => {
     test('handle retries option', async () => {
       const client = new Client('id', 'key', { retries: 3 });
 
+      // Simulate server failure on first 2 attempts and success on the third
       let retryCounter = 0;
       mock.onGet('/products/:count').reply(() => {
         retryCounter++;
@@ -236,6 +238,7 @@ describe('Client', () => {
     test('handle return error if response not received after retries', async () => {
       const client = new Client('id', 'key', { retries: 3 });
 
+      // Simulate server failure on first 4 attempts and success on the fifth
       let retryCounter = 0;
       mock.onGet('/products/:count').reply(() => {
         retryCounter++;
