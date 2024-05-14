@@ -49,6 +49,7 @@ describe('Client', () => {
         url: 'https://api.swell.store',
         verifyCert: true,
         version: 1,
+        retries: 0,
       });
     });
 
@@ -63,6 +64,7 @@ describe('Client', () => {
         url: 'https://api.swell.store',
         verifyCert: false,
         version: 2,
+        retries: 0,
       });
     });
 
@@ -141,11 +143,7 @@ describe('Client', () => {
 
       mock.onPost('/products').reply(200, 'result');
 
-      const response = await client.request(
-        HttpMethod.post,
-        '/products',
-        {},
-      );
+      const response = await client.request(HttpMethod.post, '/products', {});
 
       expect(response).toEqual('result');
     });
@@ -155,11 +153,9 @@ describe('Client', () => {
 
       mock.onPut('/products/{id}').reply(200, 'result');
 
-      const response = await client.request(
-        HttpMethod.put,
-        '/products/{id}',
-        { id: 'foo' },
-      );
+      const response = await client.request(HttpMethod.put, '/products/{id}', {
+        id: 'foo',
+      });
 
       expect(response).toEqual('result');
     });
@@ -198,4 +194,60 @@ describe('Client', () => {
       ).rejects.toThrow(new Error('timeout of 0ms exceeded'));
     });
   }); // describe: #request
+
+  describe('#retry', () => {
+    test('handle zero retries by default', async () => {
+      const client = new Client('id', 'key');
+
+      let retryCounter = 0;
+      mock.onGet('/products/:count').reply(() => {
+        retryCounter++;
+        if (retryCounter < 2) {
+          throw new Error('Internal Server Error');
+        }
+        return [200, 42];
+      });
+
+      await expect(
+        client.request(HttpMethod.get, '/products/:count', {}),
+      ).rejects.toThrow(new Error('Internal Server Error'));
+    });
+
+    test('handle retries option', async () => {
+      const client = new Client('id', 'key', { retries: 3 });
+
+      let retryCounter = 0;
+      mock.onGet('/products/:count').reply(() => {
+        retryCounter++;
+        if (retryCounter < 2) {
+          throw new Error('Internal Server Error');
+        }
+        return [200, 42];
+      });
+
+      const response = await client.request(
+        HttpMethod.get,
+        '/products/:count',
+        {},
+      );
+      expect(response).toEqual(42);
+    });
+
+    test('handle return error if response not received after retries', async () => {
+      const client = new Client('id', 'key', { retries: 3 });
+
+      let retryCounter = 0;
+      mock.onGet('/products/:count').reply(() => {
+        retryCounter++;
+        if (retryCounter < 5) {
+          throw new Error('Internal Server Error');
+        }
+        return [200, 42];
+      });
+
+      await expect(
+        client.request(HttpMethod.get, '/products/:count', {}),
+      ).rejects.toThrow(new Error('Internal Server Error'));
+    });
+  }); // describe: #retry
 });
