@@ -1,4 +1,5 @@
 import * as axios from 'axios';
+import * as retry from 'retry';
 import { CookieJar } from 'tough-cookie';
 import { HttpCookieAgent, HttpsCookieAgent } from 'http-cookie-agent/http';
 
@@ -19,6 +20,7 @@ export interface ClientOptions {
   version?: number;
   timeout?: number;
   headers?: HttpHeaders;
+  retries?: number;
 }
 
 const MODULE_VERSION: string = (({ name, version }) => {
@@ -35,6 +37,7 @@ const DEFAULT_OPTIONS: Readonly<ClientOptions> = Object.freeze({
   verifyCert: true,
   version: 1,
   headers: {},
+  retries: 0, // 0 => no retries
 });
 
 class ApiError extends Error {
@@ -163,21 +166,36 @@ export class Client {
     url: string,
     data?: unknown,
   ): Promise<T> {
-    if (this.httpClient === null) {
-      throw new Error('Swell API client not initialized');
-    }
-
     // Prepare url and data for request
     const requestParams = transformRequest(method, url, data);
 
-    let response;
-    try {
-      response = await this.httpClient.request<T>(requestParams);
-    } catch (error) {
-      throw transformError(error);
-    }
+    return new Promise((resolve, reject) => {
+      const { retries } = this.options;
 
-    return transformResponse(response).data;
+      const operation = retry.operation({
+        retries,
+        minTimeout: 20,
+        maxTimeout: 100,
+        factor: 1,
+        randomize: false,
+      });
+
+      operation.attempt(async () => {
+        if (this.httpClient === null) {
+          return reject(new Error('Swell API client not initialized'));
+        }
+
+        try {
+          const response = await this.httpClient.request<T>(requestParams);
+          resolve(transformResponse(response).data);
+        } catch (error) {
+          if (operation.retry(error as Error)) {
+            return;
+          }
+          reject(transformError(operation.mainError()));
+        }
+      });
+    });
   }
 }
 
