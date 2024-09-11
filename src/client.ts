@@ -193,11 +193,11 @@ export class Client {
           resolve(transformResponse(response).data);
         } catch (error) {
           const code = axios.isAxiosError(error) ? error?.code : null;
-          if (
-            code &&
-            RETRY_CODES.includes(code) &&
-            operation.retry(error as Error)
-          ) {
+          if (code && !RETRY_CODES.includes(code)) {
+            return reject(transformError(operation.mainError()));
+          }
+
+          if (operation.retry(error as Error)) {
             return;
           }
           reject(transformError(operation.mainError()));
