@@ -194,14 +194,15 @@ export class Client {
         } catch (error) {
           // Attempt retry if we encounter a timeout or connection error
           const code = axios.isAxiosError(error) ? error?.code : null;
-          if (code && !RETRY_CODES.has(code)) {
-            return reject(transformError(operation.mainError()));
-          }
 
-          if (operation.retry(error as Error)) {
+          if (
+            code &&
+            RETRY_CODES.has(code) &&
+            operation.retry(error as Error)
+          ) {
             return;
           }
-          reject(transformError(operation.mainError()));
+          reject(transformError(error));
         }
       });
     });
