@@ -61,6 +61,9 @@ class ApiError extends Error {
   }
 }
 
+// We should retry request only in case of timeout or disconnect
+const RETRY_CODES = new Set(['ECONNABORTED', 'ECONNREFUSED']);
+
 /**
  * Swell API Client.
  */
@@ -189,10 +192,17 @@ export class Client {
           const response = await this.httpClient.request<T>(requestParams);
           resolve(transformResponse(response).data);
         } catch (error) {
-          if (operation.retry(error as Error)) {
+          // Attempt retry if we encounter a timeout or connection error
+          const code = axios.isAxiosError(error) ? error?.code : null;
+
+          if (
+            code &&
+            RETRY_CODES.has(code) &&
+            operation.retry(error as Error)
+          ) {
             return;
           }
-          reject(transformError(operation.mainError()));
+          reject(transformError(error));
         }
       });
     });

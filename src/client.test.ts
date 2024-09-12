@@ -199,37 +199,29 @@ describe('Client', () => {
     test('handle zero retries by default', async () => {
       const client = new Client('id', 'key');
 
-      // Simulate server failure on first 2 attempts and success on the third
-      let retryCounter = 0;
-      mock.onGet('/products/:count').reply(() => {
-        retryCounter++;
-        if (retryCounter < 2) {
-          throw new Error('Internal Server Error');
-        }
-        return [200, 42];
-      });
+      // Simulate timeout error
+      mock.onGet('/products/:count').timeoutOnce();
 
       await expect(
         client.request(HttpMethod.get, '/products/:count', {}),
-      ).rejects.toThrow(new Error('Internal Server Error'));
+      ).rejects.toThrow(new Error('timeout of 0ms exceeded'));
     });
 
     test('handle retries option', async () => {
       const client = new Client('id', 'key', { retries: 3 });
 
       // Simulate server failure on first 2 attempts and success on the third
-      let retryCounter = 0;
-      mock.onGet('/products/:count').reply(() => {
-        retryCounter++;
-        if (retryCounter < 2) {
-          throw new Error('Internal Server Error');
-        }
-        return [200, 42];
-      });
+      mock
+        .onGet('/products:variants/:count')
+        .timeoutOnce()
+        .onGet('/products:variants/:count')
+        .timeoutOnce()
+        .onGet('/products:variants/:count')
+        .replyOnce(200, 42);
 
       const response = await client.request(
         HttpMethod.get,
-        '/products/:count',
+        '/products:variants/:count',
         {},
       );
       expect(response).toEqual(42);
@@ -239,18 +231,37 @@ describe('Client', () => {
       const client = new Client('id', 'key', { retries: 3 });
 
       // Simulate server failure on first 4 attempts and success on the fifth
-      let retryCounter = 0;
-      mock.onGet('/products/:count').reply(() => {
-        retryCounter++;
-        if (retryCounter < 5) {
-          throw new Error('Internal Server Error');
-        }
-        return [200, 42];
+      mock
+        .onGet('/categories/:count')
+        .timeoutOnce()
+        .onGet('/categories/:count')
+        .timeoutOnce()
+        .onGet('/categories/:count')
+        .timeoutOnce()
+        .onGet('/categories/:count')
+        .timeoutOnce()
+        .onGet('/categories/:count')
+        .replyOnce(200, 42);
+
+      await expect(
+        client.request(HttpMethod.get, '/categories/:count', {}),
+      ).rejects.toThrow(new Error('timeout of 0ms exceeded'));
+    });
+
+    test('handle return error code without retries', async () => {
+      const client = new Client('id', 'key', { retries: 3 });
+
+      // Simulate server returns 404 error with 1st attempt
+      let attemptsCouter = 0;
+      mock.onGet('/:files/robots.txt').reply(() => {
+        attemptsCouter++;
+        return [404, 'Not found'];
       });
 
       await expect(
-        client.request(HttpMethod.get, '/products/:count', {}),
-      ).rejects.toThrow(new Error('Internal Server Error'));
+        client.request(HttpMethod.get, '/:files/robots.txt', {}),
+      ).rejects.toThrow();
+      expect(attemptsCouter).toBe(1);
     });
   }); // describe: #retry
 });
