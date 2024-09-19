@@ -178,7 +178,9 @@ describe('Client', () => {
       const client = new Client('id', 'key');
 
       mock.onGet('/products/:count').reply((config) => {
-        const headers = Object.fromEntries(Object.entries(config.headers || {}));
+        const headers = Object.fromEntries(
+          Object.entries(config.headers || {}),
+        );
         return [200, headers['X-Foo']];
       });
 
