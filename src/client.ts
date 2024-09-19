@@ -148,29 +148,30 @@ export class Client {
     });
   }
 
-  get<T>(url: string, data?: unknown): Promise<T> {
-    return this.request(HttpMethod.get, url, data);
+  get<T>(url: string, data?: unknown, headers?: HttpHeaders): Promise<T> {
+    return this.request(HttpMethod.get, url, data, headers);
   }
 
-  post<T>(url: string, data: unknown): Promise<T> {
-    return this.request(HttpMethod.post, url, data);
+  post<T>(url: string, data: unknown, headers?: HttpHeaders): Promise<T> {
+    return this.request(HttpMethod.post, url, data, headers);
   }
 
-  put<T>(url: string, data: unknown): Promise<T> {
-    return this.request(HttpMethod.put, url, data);
+  put<T>(url: string, data: unknown, headers?: HttpHeaders): Promise<T> {
+    return this.request(HttpMethod.put, url, data, headers);
   }
 
-  delete<T>(url: string, data?: unknown): Promise<T> {
-    return this.request(HttpMethod.delete, url, data);
+  delete<T>(url: string, data?: unknown, headers?: HttpHeaders): Promise<T> {
+    return this.request(HttpMethod.delete, url, data, headers);
   }
 
   async request<T>(
     method: HttpMethod,
     url: string,
     data?: unknown,
+    headers?: HttpHeaders,
   ): Promise<T> {
     // Prepare url and data for request
-    const requestParams = transformRequest(method, url, data);
+    const requestParams = transformRequest(method, url, data, headers);
 
     return new Promise((resolve, reject) => {
       const { retries } = this.options;
@@ -221,11 +222,13 @@ function transformRequest(
   method: HttpMethod,
   url: string,
   data: unknown,
+  headers?: HttpHeaders,
 ): axios.AxiosRequestConfig {
   return {
     method,
     url: typeof url?.toString === 'function' ? url.toString() : '',
     data: data !== undefined ? data : null,
+    headers,
   };
 }
 
