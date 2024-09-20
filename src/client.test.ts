@@ -174,6 +174,26 @@ describe('Client', () => {
       expect(response).toEqual('result');
     });
 
+    test('makes a request with headers', async () => {
+      const client = new Client('id', 'key');
+
+      mock.onGet('/products/:count').reply((config) => {
+        const headers = Object.fromEntries(
+          Object.entries(config.headers || {}),
+        );
+        return [200, headers['X-Foo']];
+      });
+
+      const response = await client.request(
+        HttpMethod.get,
+        '/products/:count',
+        {},
+        { 'X-Foo': 'bar' },
+      );
+
+      expect(response).toEqual('bar');
+    });
+
     test('handles an error response', async () => {
       const client = new Client('id', 'key');
 

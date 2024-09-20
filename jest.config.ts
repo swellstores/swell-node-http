@@ -6,10 +6,7 @@ const config: Config = {
   restoreMocks: true,
   testEnvironment: 'node',
   transform: {
-    '^.+\\.ts$': [
-      'ts-jest',
-      { diagnostics: { ignoreCodes: ['TS151001'] } }
-    ],
+    '^.+\\.ts$': ['ts-jest', { diagnostics: { ignoreCodes: ['TS151001'] } }],
   },
 };
 
