@@ -91,7 +91,7 @@ export class Client {
   /**
    * Convenience method to create a new client instance from a singleton instance.
    */
-  create(
+  createClient(
     clientId: string,
     clientKey: string,
     options: ClientOptions = {},
